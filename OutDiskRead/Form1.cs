@@ -136,6 +136,7 @@ namespace OutDiskRead
                             {
                                 if(drive.DriveType == DriveType.Removable)//可移动磁盘
                                 {
+                                    
                                 }
                                 //if (drive.DriveType == DriveType.CDRom)
                                 //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
@@ -229,12 +230,27 @@ namespace OutDiskRead
 
         public void SavePicFile(object fileUrl)
         {
-            string kFileUrl = Convert.ToString(fileUrl);
+            DriveInfo OutDrive = null;
+            DriveInfo[] s = DriveInfo.GetDrives();
+            foreach (DriveInfo drive in s)
+            {
+                if (drive.DriveType == DriveType.Removable)//可移动磁盘
+                {
+                    OutDrive = drive;
+                }
+                //if (drive.DriveType == DriveType.CDRom)
+                //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
+            }
+            string kFileUrl = OutDrive.ToString();//Convert.ToString(fileUrl);
             string FileDir = DateTime.Now.ToString("yyyyMMdd");
-            string SaveDir = @"C:\SavePic\" + FileDir + "\\" + kFileUrl;
-            if(!Directory.Exists(SaveDir))
+            string SaveDir = @"C:\SavePic\" + FileDir + "\\" + OutDrive.VolumeLabel + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat + "\\ImgList";
+            if (!Directory.Exists(SaveDir))
             {
                 Directory.CreateDirectory(SaveDir);
+            }
+            else
+            {
+                return;
             }
             if (string.IsNullOrEmpty(kFileUrl))
             {
@@ -283,13 +299,16 @@ namespace OutDiskRead
                     }
                 }
             }
-            ////保存图片
-            //while(queueList.Count > 0)
-            //{
-            //    string picPath = queueList.Dequeue();
-            //    string destPath = Path.Combine(@"D:\A", Guid.NewGuid().ToString() + "_" + Path.GetFileName(picPath));
-            //    File.Copy(picPath, destPath);
-            //}
+            StringBuilder sbImgList = new StringBuilder();
+            //保存图片
+            while (queueList.Count > 0)
+            {
+                string picPath = queueList.Dequeue();
+                string destPath = Path.Combine(SaveDir, Guid.NewGuid().ToString() + "_" + Path.GetFileName(picPath));
+                File.Copy(picPath, destPath);
+                sbImgList.Append(picPath).Append(Environment.NewLine);
+            }
+            File.AppendAllText(SaveDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
         }
     }
 }
