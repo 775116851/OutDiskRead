@@ -5,6 +5,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutDiskRead", "OutDiskRead\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutDiskReadService", "OutDiskReadService\OutDiskReadService.csproj", "{461E1BA5-D2E1-4A2C-9974-C13B14D8529E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rdParty", "3rdParty", "{7B27F372-CE66-45E3-A7CB-7EBF139CEC91}"
+	ProjectSection(SolutionItems) = preProject
+		3rdParty\log4net.dll = 3rdParty\log4net.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

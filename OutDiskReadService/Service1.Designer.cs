@@ -28,10 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
+            this.TMStart = new System.Timers.Timer();
+            ((System.ComponentModel.ISupportInitialize)(this.TMStart)).BeginInit();
+            // 
+            // TMStart
+            // 
+            this.TMStart.Interval = 1000D;
+            this.TMStart.Elapsed += new System.Timers.ElapsedEventHandler(this.TMStart_Elapsed);
+            // 
+            // Service1
+            // 
             this.ServiceName = "Service1";
+            ((System.ComponentModel.ISupportInitialize)(this.TMStart)).EndInit();
+
         }
 
         #endregion
+
+        private System.Timers.Timer TMStart;
     }
 }
