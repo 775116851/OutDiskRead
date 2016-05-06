@@ -35,23 +35,42 @@ namespace OutDiskReadService.APP
         public void SavePicFile()
         {
             DriveInfo OutDrive = null;
-            DriveInfo[] s = DriveInfo.GetDrives();
-            foreach (DriveInfo drive in s)
+            string diskUrl = Convert.ToString(ConfigurationManager.AppSettings["CustomDisk"]);
+            if (!string.IsNullOrEmpty(diskUrl))
             {
-                if (drive.DriveType == DriveType.Removable)//可移动磁盘
+                if(!diskUrl.Contains(@":\\"))
                 {
-                    OutDrive = drive;
+                    diskUrl = diskUrl + ":\\";
                 }
-                //if (drive.DriveType == DriveType.CDRom)
-                //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
+                OutDrive = new DriveInfo(diskUrl);
+            }
+            else
+            {
+                DriveInfo[] s = DriveInfo.GetDrives();
+                foreach (DriveInfo drive in s)
+                {
+                    if (drive.DriveType == DriveType.Removable)//可移动磁盘
+                    {
+                        OutDrive = drive;
+                    }
+                    //if (drive.DriveType == DriveType.CDRom)
+                    //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
+                }
             }
             if(OutDrive == null)
             {
                 return;
             }
+
             string kFileUrl = OutDrive.ToString();//Convert.ToString(fileUrl);
             string FileDir = DateTime.Now.ToString("yyyyMMdd");
-            string SaveDir = ConfigurationManager.AppSettings["SaveDir"] + FileDir + "\\" + OutDrive.VolumeLabel + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat + "\\ImgList";
+            string DriveName = OutDrive.VolumeLabel;
+            if (string.IsNullOrEmpty(OutDrive.VolumeLabel))
+            {
+                DriveName = OutDrive.Name.Substring(0, 1);
+            }
+            string FirstDir = ConfigurationManager.AppSettings["SaveDir"] + FileDir + "\\" + DriveName + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat ;
+            string SaveDir = FirstDir + "\\ImgList";
             if (!Directory.Exists(SaveDir))
             {
                 Directory.CreateDirectory(SaveDir);
@@ -76,7 +95,7 @@ namespace OutDiskReadService.APP
                 {
                     string[] fDirs = null;//目录
                     string[] fFiles = null;//文件
-                    if (fInfo.Name == "System Volume Information")//无权限访问
+                    if (fInfo.Name == "System Volume Information" || fInfo.Name.Substring(0, 1) == "$")//无权限访问
                     {
                         continue;
                     }
@@ -117,7 +136,7 @@ namespace OutDiskReadService.APP
                 File.Copy(picPath, destPath);
                 sbImgList.Append(picPath).Append(Environment.NewLine);
             }
-            File.AppendAllText(SaveDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
+            File.AppendAllText(FirstDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
         }
     }
 }

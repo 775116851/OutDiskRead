@@ -22,8 +22,8 @@ namespace OutDiskRead
         private void Form1_Load(object sender, EventArgs e)
         {
             //BuildTree();
-            Thread tShow = new Thread(SavePicFile);
-            tShow.Start(@"F:\");
+            //Thread tShow = new Thread(SavePicFile);
+            //tShow.Start(@"F:\");
         }
 
         private void kk()
@@ -105,6 +105,13 @@ namespace OutDiskRead
             List<string> list = GetRemovableDeviceID();
             Stack<string> stackList = new Stack<string>();
             
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Thread tShow = new Thread(SavePicFile);
+            //tShow.Start(@"F:\");
+            tShow.Start(@"F:\图片logo");
         }
 
         public const int WM_DEVICECHANGE = 0x219;
@@ -231,19 +238,45 @@ namespace OutDiskRead
         public void SavePicFile(object fileUrl)
         {
             DriveInfo OutDrive = null;
-            DriveInfo[] s = DriveInfo.GetDrives();
-            foreach (DriveInfo drive in s)
+            if (!string.IsNullOrEmpty(Convert.ToString(fileUrl)))
             {
-                if (drive.DriveType == DriveType.Removable)//可移动磁盘
+                string fileUrls = Convert.ToString(fileUrl);
+                OutDrive = new DriveInfo(fileUrls);
+            }
+            else
+            {
+                DriveInfo[] s = DriveInfo.GetDrives();
+                foreach (DriveInfo drive in s)
                 {
-                    OutDrive = drive;
+                    if (drive.DriveType == DriveType.Removable)//可移动磁盘
+                    {
+                        OutDrive = drive;
+                    }
+                    //if (drive.DriveType == DriveType.CDRom)
+                    //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
                 }
-                //if (drive.DriveType == DriveType.CDRom)
-                //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
+            }
+            if (OutDrive != null)
+            {
+
+            }
+            else
+            {
+                string kk = @"计算机\Coolpad 8675-A";
+                if (!Directory.Exists(kk))
+                {
+                }
+                return;
             }
             string kFileUrl = OutDrive.ToString();//Convert.ToString(fileUrl);
             string FileDir = DateTime.Now.ToString("yyyyMMdd");
-            string SaveDir = @"C:\SavePic\" + FileDir + "\\" + OutDrive.VolumeLabel + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat + "\\ImgList";
+            string DriveName = OutDrive.VolumeLabel;
+            if (string.IsNullOrEmpty(OutDrive.VolumeLabel))
+            {
+                DriveName = OutDrive.Name.Substring(0,1);
+            }
+            string FirstDir = @"C:\SavePic\" + FileDir + "\\" + DriveName + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat;
+            string SaveDir = FirstDir + "\\ImgList";
             if (!Directory.Exists(SaveDir))
             {
                 Directory.CreateDirectory(SaveDir);
@@ -256,6 +289,7 @@ namespace OutDiskRead
             {
                 return;
             }
+            return;
             Queue<string> queueList = new Queue<string>();
             Stack<string> stackList = new Stack<string>();
             stackList.Push(kFileUrl);
@@ -308,7 +342,9 @@ namespace OutDiskRead
                 File.Copy(picPath, destPath);
                 sbImgList.Append(picPath).Append(Environment.NewLine);
             }
-            File.AppendAllText(SaveDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
+            File.AppendAllText(FirstDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
         }
+
+        
     }
 }
