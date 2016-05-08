@@ -9,6 +9,7 @@ using System.Management;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Configuration;
 
 namespace OutDiskRead
 {
@@ -111,7 +112,7 @@ namespace OutDiskRead
         {
             Thread tShow = new Thread(SavePicFile);
             //tShow.Start(@"F:\");
-            tShow.Start(@"F:\图片logo");
+            tShow.Start(@"F:\\");
         }
 
         public const int WM_DEVICECHANGE = 0x219;
@@ -237,11 +238,13 @@ namespace OutDiskRead
 
         public void SavePicFile(object fileUrl)
         {
+            Queue<DriveInfo> quList = new Queue<DriveInfo>();
             DriveInfo OutDrive = null;
             if (!string.IsNullOrEmpty(Convert.ToString(fileUrl)))
             {
                 string fileUrls = Convert.ToString(fileUrl);
                 OutDrive = new DriveInfo(fileUrls);
+                quList.Enqueue(OutDrive);
             }
             else
             {
@@ -251,29 +254,54 @@ namespace OutDiskRead
                     if (drive.DriveType == DriveType.Removable)//可移动磁盘
                     {
                         OutDrive = drive;
+                        quList.Enqueue(OutDrive);
                     }
                     //if (drive.DriveType == DriveType.CDRom)
                     //你可以判断插入的是什么类型的移动存储设备,并且知道他的盘符,这样就可以在后台遍历所有文件夹跟文件了,后面怎么搞就你自己来搞了,复制文件到你指定的地方.
                 }
             }
-            if (OutDrive != null)
+            if(quList != null && quList.Count > 0)
             {
-
-            }
-            else
-            {
-                string kk = @"计算机\Coolpad 8675-A";
-                if (!Directory.Exists(kk))
+                while(quList.Count > 0)
                 {
+                    OutDrive = quList.Dequeue();
+                    if (OutDrive != null)
+                    {
+
+                    }
+                    else
+                    {
+                        string kk = @"计算机\Coolpad 8675-A";
+                        if (!Directory.Exists(kk))
+                        {
+                        }
+                        continue;
+                    }
+                    try
+                    {
+                        string m = OutDrive.VolumeLabel;//特殊磁盘
+                    }
+                    catch (Exception ex)
+                    {
+                        continue;
+                    }
+                    ShowDisk(OutDrive);
+
                 }
-                return;
             }
+            
+            
+        }
+
+        private void ShowDisk(DriveInfo OutDrive)
+        {
+            string filterFile = string.Empty//可能过滤的文件名
             string kFileUrl = OutDrive.ToString();//Convert.ToString(fileUrl);
             string FileDir = DateTime.Now.ToString("yyyyMMdd");
             string DriveName = OutDrive.VolumeLabel;
             if (string.IsNullOrEmpty(OutDrive.VolumeLabel))
             {
-                DriveName = OutDrive.Name.Substring(0,1);
+                DriveName = OutDrive.Name.Substring(0, 1);
             }
             string FirstDir = @"C:\SavePic\" + FileDir + "\\" + DriveName + "_" + OutDrive.AvailableFreeSpace + "_" + OutDrive.DriveFormat;
             string SaveDir = FirstDir + "\\ImgList";
@@ -289,37 +317,48 @@ namespace OutDiskRead
             {
                 return;
             }
-            return;
+            //return;
             Queue<string> queueList = new Queue<string>();
             Stack<string> stackList = new Stack<string>();
             stackList.Push(kFileUrl);
-            while(stackList.Count > 0)
+            while (stackList.Count > 0)
             {
                 string path = stackList.Pop();
                 FileInfo fInfo = new FileInfo(path);
-                if((fInfo.Attributes & FileAttributes.Directory) != 0)
+                if ((fInfo.Attributes & FileAttributes.Directory) != 0)
                 {
                     string[] fDirs = null;//目录
                     string[] fFiles = null;//文件
-                    if (fInfo.Name == "System Volume Information")//无权限访问
+                    if (CheckFilterFile(fInfo.Name))//无权限访问 fInfo.Name == "System Volume Information"
                     {
                         continue;
                     }
-                    fDirs = Directory.GetDirectories(path);
-                    fFiles = Directory.GetFiles(path);
-                    if(fDirs != null && fFiles != null)
+                    try 
+	                {	        
+		                filterFile = path.Substring(path.LastIndexOf("\\") + 1);
+                        fDirs = Directory.GetDirectories(path);
+                        fFiles = Directory.GetFiles(path);
+	                }
+	                catch (Exception ex)
+	                {
+		                string filterConfig = Convert.ToString(ConfigurationManager.AppSettings["FilterFile"]);
+                        filterConfig = filterConfig + "|RR|" + filterFile;
+
+
+	                }
+                    if (fDirs != null && fFiles != null)
                     {
                         //目录入栈
-                        for (int i = 0; i < fDirs.Length; i++ )
+                        for (int i = 0; i < fDirs.Length; i++)
                         {
                             //string fDirName = Path.GetFileName(fDirs[i]);
                             stackList.Push(fDirs[i]);
                         }
                         //文件不入栈
-                        for (int i = 0; i < fFiles.Length;i++ )
+                        for (int i = 0; i < fFiles.Length; i++)
                         {
                             string fFileExt = Path.GetExtension(fFiles[i]);
-                            if(!string.IsNullOrEmpty(fFileExt))
+                            if (!string.IsNullOrEmpty(fFileExt))
                             {
                                 fFileExt = fFileExt.Substring(1);
                             }
@@ -345,6 +384,19 @@ namespace OutDiskRead
             File.AppendAllText(FirstDir + "\\ImgList.txt", sbImgList.ToString(), Encoding.UTF8);
         }
 
-        
+        //检查是否为过滤文件
+        private bool CheckFilterFile(string FileName)
+        {
+            if(string.IsNullOrEmpty(FileName))
+            {
+                return false;
+            }
+            string[] filterList = Convert.ToString(ConfigurationManager.AppSettings["FilterFile"]).Split(new string[] { "|RR|" }, StringSplitOptions.RemoveEmptyEntries);
+            if(filterList.Contains(FileName))
+            {
+                return true;
+            }
+            return false;            
+        }
     }
 }
