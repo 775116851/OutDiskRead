@@ -295,7 +295,7 @@ namespace OutDiskRead
 
         private void ShowDisk(DriveInfo OutDrive)
         {
-            string filterFile = string.Empty//可能过滤的文件名
+            string filterFile = string.Empty;//可能过滤的文件名
             string kFileUrl = OutDrive.ToString();//Convert.ToString(fileUrl);
             string FileDir = DateTime.Now.ToString("yyyyMMdd");
             string DriveName = OutDrive.VolumeLabel;
