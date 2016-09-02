@@ -25,6 +25,7 @@ namespace OutDiskRead
             //BuildTree();
             //Thread tShow = new Thread(SavePicFile);
             //tShow.Start(@"F:\");
+            //http://m.blog.csdn.net/article/details?id=51204369
         }
 
         private void kk()
@@ -112,7 +113,7 @@ namespace OutDiskRead
         {
             Thread tShow = new Thread(SavePicFile);
             //tShow.Start(@"F:\");
-            tShow.Start(@"F:\\");
+            tShow.Start(@"Coolpad 8675-A\\");
         }
 
         public const int WM_DEVICECHANGE = 0x219;
